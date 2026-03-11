@@ -28,8 +28,9 @@ export async function streamChat({
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let streamDone = false;
 
-  while (true) {
+  while (!streamDone) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -44,13 +45,15 @@ export async function streamChat({
       if (!line.startsWith("data: ")) continue;
 
       const jsonStr = line.slice(6).trim();
-      if (jsonStr === "[DONE]") break;
+      if (jsonStr === "[DONE]") {
+        streamDone = true;
+        break;
+      }
 
       try {
         const parsed = JSON.parse(jsonStr);
-        // Gemini streaming format
-        const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) onDelta(text);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
       } catch {
         buffer = line + "\n" + buffer;
         break;
