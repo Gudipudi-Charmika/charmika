@@ -1,7 +1,7 @@
-import ChatInterface from "@/components/ChatInterface";
+import AttentionDashboard from "@/components/AttentionDashboard";
 
 const Index = () => {
-  return <ChatInterface />;
+  return <AttentionDashboard />;
 };
 
 export default Index;
